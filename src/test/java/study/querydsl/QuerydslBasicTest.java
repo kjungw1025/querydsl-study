@@ -1,11 +1,13 @@
 package study.querydsl;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceUnit;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -215,4 +217,28 @@ public class QuerydslBasicTest {
         assertThat(result).extracting("age")
                 .containsExactly(20, 30, 40);
     }
+
+    @Test
+    public void dynamicQuery_BooleanBuilder() {
+        String usernameParam = "member1";
+        Integer ageParam = 10;
+
+        List<Member> result = searchMember1(usernameParam, ageParam);
+        assertThat(result.size()).isEqualTo(1);
+    }
+
+    private List<Member> searchMember1(String usernameCond, Integer ageCond) {
+        BooleanBuilder builder = new BooleanBuilder();
+        if (usernameCond != null) {
+            builder.and(member.username.eq(usernameCond));
+        }
+        if (ageCond != null) {
+            builder.and(member.age.eq(ageCond));
+        }
+        return queryFactory
+                .selectFrom(member)
+                .where(builder)
+                .fetch();
+    }
+
 }
